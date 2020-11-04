@@ -105,7 +105,7 @@
 
                 <input onclick="oncheckhydropower();" type="checkbox" id="hydropower" name="layer" value="hydropower"> Thủy điện<br />
                 <input onclick="oncheckriver();" type="checkbox" id="river" name="layer" value="river"> Sông <br />
-                <input onclick="oncheckvn()" type="checkbox" id="vn" name="layer" value="vn"> Việt Nam<br />
+                <input onclick="oncheckvn()" type="checkbox" id="VN" name="layer" value="VN"> Việt Nam<br />
                 <button id="btnRest"> Reset</button>
 
             </td>
@@ -239,7 +239,7 @@
             
             map = new ol.Map({
                 target: "map",
-                layers: [layerBG, layerVN_adm1],
+                layers: [layerBG],
                 view: viewMap,
                 overlays: [overlay], //them khai bao overlays
             });
@@ -359,8 +359,7 @@
                 var myPoint = 'POINT(' + lon + ' ' + lat + ')';
                 
                 if (value == 'VN') {
-                    vectorLayer.setStyle(styleFunction);
-
+                    vectorLayer.setStyle(stylePoint);
                     $.ajax({
                         type: "POST",
                         url: "VN_pgsqlAPI.php",
@@ -375,43 +374,12 @@
                             alert(req + " " + status + " " + error);
                         }
                     });
+
                     $.ajax({
                         type: "POST",
                         url: "VN_pgsqlAPI.php",
                         data: {
                             functionname: 'getGeoVNToAjax',
-                            paPoint: myPoint
-                        },
-                        success: function(result, status, erro) {
-                            highLightObj(result);
-                        },
-                        error: function(req, status, error) {
-                            alert(req + " " + status + " " + error);
-                        }
-                    });
-                }
-                if (value == "river") {
-                    //river
-                    vectorLayer.setStyle(styleFunction);
-                    $.ajax({
-                        type: "POST",
-                        url: "VN_pgsqlAPI.php",
-                        data: {
-                            functionname: 'getInfoRiverToAjax',
-                            paPoint: myPoint
-                        },
-                        success: function(result, status, erro) {
-                            displayObjInfo(result, evt.coordinate);
-                        },
-                        error: function(req, status, error) {
-                            alert(req + " " + status + " " + error);
-                        }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        url: "VN_pgsqlAPI.php",
-                        data: {
-                            functionname: 'getGeoRiverToAjax',
                             paPoint: myPoint
                         },
                         success: function(result, status, erro) {
@@ -454,6 +422,40 @@
                         }
                     });
                 }
+                if (value == "river") {
+                    //river
+                    vectorLayer.setStyle(stylePoint);
+                    $.ajax({
+                        type: "POST",
+                        url: "VN_pgsqlAPI.php",
+                        data: {
+                            functionname: 'getInfoRiverToAjax',
+                            paPoint: myPoint
+                        },
+                        success: function(result, status, erro) {
+                            displayObjInfo(result, evt.coordinate);
+                        },
+                        error: function(req, status, error) {
+                            alert(req + " " + status + " " + error);
+                        }
+                    });
+
+                    $.ajax({
+                        type: "POST",
+                        url: "VN_pgsqlAPI.php",
+                        data: {
+                            functionname: 'getGeoRiverToAjax',
+                            paPoint: myPoint
+                        },
+                        success: function(result, status, erro) {
+                            highLightObj(result);
+                        },
+                        error: function(req, status, error) {
+                            alert(req + " " + status + " " + error);
+                        }
+                    });
+                }
+                
             });
         };
     </script>

@@ -10,7 +10,37 @@
 
         $aResult = "null";
 
-        if ($functionname == 'getGeoVNToAjax')
+
+        switch ($functionname) {
+            case 'getGeoVNToAjax':
+                $paPoint = $_POST['paPoint'];
+                $aResult = getGeoVNToAjax($paPDO, $paSRID, $paPoint);
+                break;
+            case 'getInfoVNToAjax':
+                $paPoint = $_POST['paPoint'];
+                $aResult = getInfoVNToAjax($paPDO, $paSRID, $paPoint);
+                break;
+            case 'getInfoRiverToAjax':
+                $paPoint = $_POST['paPoint'];
+                $aResult = getInfoRiverToAjax($paPDO, $paSRID, $paPoint);
+                break;
+            case 'getGeoRiverToAjax':
+                $paPoint = $_POST['paPoint'];
+                $aResult = getGeoRiverToAjax($paPDO, $paSRID, $paPoint);
+                break;
+            case 'getInfoHyproPowerToAjax':
+                $paPoint = $_POST['paPoint'];
+                $aResult = getInfoHyproPowerToAjax($paPDO, $paSRID, $paPoint);
+                break;
+            case 'getGeoHyproPowerToAjax':
+                $paPoint = $_POST['paPoint'];
+
+                $aResult = getGeoHyproPowerToAjax($paPDO, $paSRID, $paPoint);
+                break;
+            default:
+                $aResult = 'Wrong functionname';
+        }
+        /*if ($functionname == 'getGeoVNToAjax')
             $aResult = getGeoVNToAjax($paPDO, $paSRID, $paPoint);
         else if ($functionname == 'getInfoVNToAjax')
             $aResult = getInfoVNToAjax($paPDO, $paSRID, $paPoint);
@@ -22,7 +52,7 @@
             $aResult = getGeoHyproPowerToAjax($paPDO, $paSRID, $paPoint);
         else if ($functionname == 'getGeoRiverToAjax')
             $aResult = getGeoRiverToAjax($paPDO, $paSRID, $paPoint);
-
+*/
         echo $aResult;
 
         closeDB($paPDO);
@@ -71,7 +101,6 @@
     function getGeoVNToAjax($paPDO, $paSRID, $paPoint)
     {
         
-        $paPoint = str_replace(',', ' ', $paPoint);
         $mySQLStr = "SELECT ST_AsGeoJson(geom) as geo from \"gadm36_vnm_1\" where ST_Within('SRID=4326;" . $paPoint . "'::geometry,geom)";
         $result = query($paPDO, $mySQLStr);
         if ($result != null) {
@@ -82,11 +111,14 @@
         } else
             return "null";
     }
+
+
+
+
     // hightlight Thuy dien
     function getGeoHyproPowerToAjax($paPDO, $paSRID, $paPoint)
     {
         
-        $paPoint = str_replace(',', ' ', $paPoint);
         
         $strDistance = "ST_Distance('" . $paPoint . "',ST_AsText(geom))";
         $strMinDistance = "SELECT min(ST_Distance('" . $paPoint . "',ST_AsText(geom))) from hydropower_dams";
@@ -106,7 +138,6 @@
     function getGeoRiverToAjax($paPDO, $paSRID, $paPoint)
     {
        
-        $paPoint = str_replace(',', ' ', $paPoint);
         
         $strDistance = "ST_Distance('" . $paPoint . "',ST_AsText(geom))";
         $strMinDistance = "SELECT min(ST_Distance('" . $paPoint . "',ST_AsText(geom))) from river";
@@ -126,7 +157,6 @@
     function getInfoVNToAjax($paPDO, $paSRID, $paPoint)
     {
        
-        $paPoint = str_replace(',', ' ', $paPoint);
         $mySQLStr = "SELECT gid, name_1, ST_Area(geom) as dt, ST_Perimeter(geom) as cv from \"gadm36_vnm_1\" where ST_Within('SRID=4326;" . $paPoint . "'::geometry,geom)";
         
         $result = query($paPDO, $mySQLStr);
@@ -144,22 +174,23 @@
             $resFin = $resFin . '</table>';
             return $resFin;
         } else
-            return "null";
+            return "Không phải thành phố/tỉnh!";
     }
 
     //Truy van thong tin Song 
     function getInfoRiverToAjax($paPDO, $paSRID, $paPoint)
     {
-        $paPoint = str_replace(',', ' ', $paPoint);
         $strDistance = "ST_Distance('" . $paPoint . "',ST_AsText(geom))";
         $strMinDistance = "SELECT min(ST_Distance('" . $paPoint . "',ST_AsText(geom))) from river";
-        $mySQLStr = "SELECT *  from river where " . $strDistance . " = (" . $strMinDistance . ") and " . $strDistance . " < 0.05";
+        $mySQLStr = "SELECT * from river where " . $strDistance . " = (" . $strMinDistance . ") and " . $strDistance . " < 0.05";
+
         $result = query($paPDO, $mySQLStr);
 
         if ($result != null) {
             $resFin = '<table>';
             // Lặp kết quả
             foreach ($result as $item) {
+                $resFin = $resFin . '<tr><td>Mã Sông: ' . $item['gid'] . '</td></tr>';
                 $resFin = $resFin . '<tr><td>Tên Sông: ' . $item['ten'] . '</td></tr>';
                 $resFin = $resFin . '<tr><td>Chiều dài: ' . $item['chieu_dai'] . '</td></tr>';
                 break;
@@ -167,13 +198,12 @@
             $resFin = $resFin . '</table>';
             return $resFin;
         } else
-            return "null";
+            return "Không phải sông!";
     }
 
     // truy van thong tin thuy dien
     function getInfoHyproPowerToAjax($paPDO, $paSRID, $paPoint)
     {
-        $paPoint = str_replace(',', ' ', $paPoint);
         $strDistance = "ST_Distance('" . $paPoint . "',ST_AsText(geom))";
         $strMinDistance = "SELECT min(ST_Distance('" . $paPoint . "',ST_AsText(geom))) from hydropower_dams";
         $mySQLStr = "SELECT * from hydropower_dams where " . $strDistance . " = (" . $strMinDistance . ") and " . $strDistance . " < 0.05";
@@ -193,7 +223,7 @@
             $resFin = $resFin . '</table>';
             return $resFin;
         } else
-            return "null";
+            return "Không phải đập thủy điện!";
     }
 
     //tim kiem
